@@ -1,0 +1,11 @@
+services:
+  nginx:
+    container_name: nginx
+    image: nginx:stable-alpine
+    volumes:
+      - ./nginx:/etc/nginx
+      - ./www:/var/www/
+
+  api:
+    container_name: api
+    build: ./api

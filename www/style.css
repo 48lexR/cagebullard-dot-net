@@ -1,0 +1,20 @@
+nav {
+    display: grid;
+    grid-template-columns: auto auto auto auto auto;
+    text-align: center;
+}
+
+main {
+
+}
+
+aside {
+    width: 30%;
+    height: auto;
+    position: sticky;
+    right: 0;
+    padding-left: 15px;
+    margin-left: 15px;
+    float: right;
+    background-color: lightgray;
+}
