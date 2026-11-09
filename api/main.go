@@ -51,7 +51,12 @@ body TEXT
 	router := mux.NewRouter
 	baseURL := "/api"
 
+	/** posts ENDPOINT */
 	router.HandleFunc(baseURL+"/posts", getPosts).Methods("GET")
+	router.HandleFunc(baseURL+"/posts/{id}", getPost).Methods("GET")
+	router.HandleFunc(baseURL+"/posts", createPost).Methods("POST")
+	router.HandleFunc(baseURL+"/posts/{id}", updatePost).Methods("PUT")
+	router.HandleFunc(baseURL+"/posts/{id}", deletePost).Methods("DELETE")
 }
 
 /** HELPER FUNCTIONS */
@@ -138,4 +143,105 @@ func getPosts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, posts)
+}
+
+func getPost(w http.ResponseWriter, r *http.Request){
+	postid := mux.Vars(r)["postid"]
+
+	var p PostRecord
+	err := db.QueryRow("SELECT postid, title, author, COALESCE(body, '') FROM posts WHERE postid = ?",
+		postid).Scan(&p.PostId, &p.Title, &p.Author, &p.Body)
+
+	if errors.Is(err, sql.NoRows) {
+		http.Error(w, "post not found", http.StatusNotFound)
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, p)
+}
+
+func createPost(w http.ResponseWriter, r *http.Request){
+	if !isJSON(r) {
+		http.Error(w, "Content-Type must be application/json",
+			http.StatusUnsupportedMediaType)
+		return
+	}
+
+	p, err := decodePost(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res, err := db.Exec(
+		"INSERT INTO posts (title, author, body) VALUES (?, ?, ?)",
+		p.Title, p.Author, p.Body)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	postid, err := res.LastInsertId()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, PostRecord{PostId: int(postid), Post: p})
+}
+
+func updatePost(w http.ResponseWriter, r *http.Request){
+	if !isJSON(r) {
+		http.Error(w, "Content-Type must be application/json")
+		return
+	}
+
+	id := mux.Vars(r)["postid"]
+
+	p, err := decodePost(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	res, err := db.Exec(
+		`UPDATE properties SET author=? title=? body=? WHERE postid=?`,
+		p.Author, p.Title, p.Body, id)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	n, err := res.RowsAffected()
+	if n == 0 {
+		http.Error(w, "post not found", http.StatusNotFound)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func deletePost(w http.ResponseWriter, r *http.Request){
+	id := mux.Vars(r)["postid"]
+	res, err := db.Exec("DELETE FROM posts WHERE postid = ?", id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	n, err := res.RowsAffected()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if n == 0 {
+		http.Error(w, "post nto found", http.StatusNotFound)
+	}
+	w.WriteHEader(http.StatusNoContent)
 }
