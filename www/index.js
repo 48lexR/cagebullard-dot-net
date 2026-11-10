@@ -1,3 +1,5 @@
+let user = "";
+
 const postGeneric = (id, author, title) => {
     return `<article>
 <h2><a href="/posts?id=${id}">${title}</a></h2>
@@ -36,7 +38,7 @@ const getPostsByQueryParams = async (container) => {
     const title = new URLSearchParams(window.location.search).get("title")
     const contains = new URLSearchParams(window.location.search).get("contains")
     try {
-        const queryString = "/api/posts";
+        let queryString = "/api/posts";
         if (author || title || contains){
             queryString += "?"
 
@@ -86,5 +88,46 @@ const getPost = async () => {
         container.innerHTML = fullPost(id, post.author, post.title, post.body);
     } catch (e) {
         container.textContent = `couldn't find the server: ${e}`;
+    }
+}
+
+const createPost = async () => {
+    const title = document.getElementById("posttitle").value;
+    const body = document.getElementById("postbody").value;
+    if (user === ""){
+        console.error("We weren't able to fulfill this request because Author is not set.");
+        return;
+    }
+    if (title === ""){
+        console.error("No title!");
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/posts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                "title": title,
+                "author": user,
+                "body": body
+            })
+        })
+
+        if (res.status === 404){
+            console.error("error");
+            return
+        }
+
+        if (!res.ok){
+            console.error("error");
+            return;
+        }
+
+        const data = await res.json();
+        console.log(data);
+        window.location.replace(`/posts?id=${data.postid}`)
+    } catch (e) {
+        console.error("Unable to fulfill this request because of a server error: ", e);
     }
 }

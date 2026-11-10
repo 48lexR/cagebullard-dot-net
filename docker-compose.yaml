@@ -7,6 +7,8 @@ services:
       - ./www:/var/www/:ro,z
     ports:
       - "8000:80"
+    depends_on:
+      - api
 
   api:
     container_name: "cagebullard-api"

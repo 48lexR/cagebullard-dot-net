@@ -7,7 +7,9 @@ import (
 	"database/sql"
 	"net/http"
 	"errors"
+	"os"
 	"log"
+	"log/slog"
 	"strings"
 	"github.com/gorilla/mux"
 )
@@ -29,8 +31,14 @@ type PostRecord struct {
 // }
 
 var db *sql.DB
+var logger *slog.Logger
 
 func main() {
+	logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+	slog.SetDefault(logger)
+	slog.Info("connecting to db")
 	db, _ = sql.Open("sqlite3", "./data.db")
 	// if err != nil {
 	// 	log.Fatal(err)
@@ -57,7 +65,7 @@ body TEXT
 	router.HandleFunc(baseURL+"/posts/{postid}", updatePost).Methods("PUT")
 	router.HandleFunc(baseURL+"/posts/{postid}", deletePost).Methods("DELETE")
 
-	http.ListenAndServe(":8080", router)
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
 /** HELPER FUNCTIONS */
@@ -68,7 +76,7 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 }
 
 func serverError(w http.ResponseWriter, err error) {
-	log.Printf("database error: %v", err)
+	logger.Error(err.Error())
 	http.Error(w, "internal server error", http.StatusInternalServerError)
 }
 
@@ -83,13 +91,16 @@ func decodePost(w http.ResponseWriter, r *http.Request) (Post, error) {
 
 	var p Post
 	if err := dec.Decode(&p); err != nil {
+		logger.Warn("Invalid json received")
 		return p, fmt.Errorf("invalid json %w", err)
 	}
 
 	if strings.TrimSpace(p.Body) == "" {
-		return p, errors.New("address required")
+		logger.Warn("No body provided")
+		return p, errors.New("body required")
 	}
 	if strings.TrimSpace(p.Author) == "" {
+		logger.Warn("No author provided")
 		return p, errors.New("author required")
 	}
 	return p, nil
@@ -128,6 +139,7 @@ func getPosts(w http.ResponseWriter, r *http.Request) {
 	query_string += " ORDER BY postid DESC"
 	rows, err := db.Query(query_string, slice...)
 	if err != nil {
+		logger.Error(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -137,12 +149,13 @@ func getPosts(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var p PostRecord
 		if err := rows.Scan(&p.PostId, &p.Title, &p.Author, &p.Body); err != nil {
+			logger.Error(err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		posts = append(posts, p)
 	}
-
+	logger.Info("Returned post successfully")
 	writeJSON(w, http.StatusOK, posts)
 }
 
