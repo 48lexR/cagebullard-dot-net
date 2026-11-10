@@ -1,20 +1,68 @@
+body {
+    margin: 0;
+}
+
 nav {
     display: grid;
     grid-template-columns: auto auto auto auto auto;
     text-align: center;
+    background-color: black;
+    color: white;
+    top: 0;
+    margin: 0;
+}
+
+nav>a {
+    color: white;
 }
 
 main {
-
+    width: 90%;
+    margin-left: 5%;
 }
 
 aside {
     width: 30%;
-    height: auto;
+    height: 100%;
     position: sticky;
     right: 0;
     padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 15px;
     margin-left: 15px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     float: right;
     background-color: lightgray;
+}
+
+#recents > article {
+    display: block;
+    margin-left: 0;
+    border: 1px solid black;
+}
+
+aside > h1 {
+    font-size: 2em;
+}
+
+#recents > article > h2 {
+    font-size: 1em;
+}
+
+#recents > article > p {
+    font-size: 0.5em;
+}
+
+footer {
+    text-align: center;
+    background-color: black;
+    color: white;
+    bottom: 0;
+}
+
+footer > ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }

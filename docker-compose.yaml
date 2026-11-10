@@ -3,9 +3,11 @@ services:
     container_name: nginx
     image: nginx:stable-alpine
     volumes:
-      - ./nginx:/etc/nginx
-      - ./www:/var/www/
+      - ./nginx:/etc/nginx/:ro,z
+      - ./www:/var/www/:ro,z
+    ports:
+      - "8000:80"
 
   api:
-    container_name: api
+    container_name: "cagebullard-api"
     build: ./api

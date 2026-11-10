@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"encoding/json"
-	"github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 	"database/sql"
 	"net/http"
 	"errors"
 	"log"
-	"os"
 	"strings"
 	"github.com/gorilla/mux"
 )
@@ -32,31 +31,33 @@ type PostRecord struct {
 var db *sql.DB
 
 func main() {
-	db, err = sql.Open("sqlite", "./data.db")
-	if err != nil {
-		log.Fatal(err)
-	}
+	db, _ = sql.Open("sqlite3", "./data.db")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	defer db.Close()
 
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS posts(
-postid SERIAL PRIMARY KEY,
-title VARCHAR(255)
-author VARCHAR(255)
+postid INTEGER PRIMARY KEY AUTOINCREMENT,
+title VARCHAR(255),
+author VARCHAR(255),
 body TEXT
 )`)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	router := mux.NewRouter
+	router := mux.NewRouter()
 	baseURL := "/api"
 
 	/** posts ENDPOINT */
 	router.HandleFunc(baseURL+"/posts", getPosts).Methods("GET")
-	router.HandleFunc(baseURL+"/posts/{id}", getPost).Methods("GET")
+	router.HandleFunc(baseURL+"/posts/{postid}", getPost).Methods("GET")
 	router.HandleFunc(baseURL+"/posts", createPost).Methods("POST")
-	router.HandleFunc(baseURL+"/posts/{id}", updatePost).Methods("PUT")
-	router.HandleFunc(baseURL+"/posts/{id}", deletePost).Methods("DELETE")
+	router.HandleFunc(baseURL+"/posts/{postid}", updatePost).Methods("PUT")
+	router.HandleFunc(baseURL+"/posts/{postid}", deletePost).Methods("DELETE")
+
+	http.ListenAndServe(":8080", router)
 }
 
 /** HELPER FUNCTIONS */
@@ -75,7 +76,7 @@ func isJSON(r *http.Request) bool {
 	return strings.HasPrefix(r.Header.Get("Content-Type"), "application/json")
 }
 
-func decodePost(w http.ResponseWriter, r *http.Request) (Property, error) {
+func decodePost(w http.ResponseWriter, r *http.Request) (Post, error) {
 	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
@@ -124,8 +125,8 @@ func getPosts(w http.ResponseWriter, r *http.Request) {
 	if len(conditions) > 0 {
 		query_string += " WHERE " + strings.Join(conditions, "AND")
 	}
-	query_string += "ORDER BY postid DESC"
-	rows, err = db.Exec(query_string, params...)
+	query_string += " ORDER BY postid DESC"
+	rows, err := db.Query(query_string, slice...)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -135,11 +136,11 @@ func getPosts(w http.ResponseWriter, r *http.Request) {
 	posts := []PostRecord{}
 	for rows.Next() {
 		var p PostRecord
-		if err := rows.Scan(&p.ID, &p.Address, &p.Rent, &p.Description); err != nil {
+		if err := rows.Scan(&p.PostId, &p.Title, &p.Author, &p.Body); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		posts = append(properties, p)
+		posts = append(posts, p)
 	}
 
 	writeJSON(w, http.StatusOK, posts)
@@ -152,8 +153,9 @@ func getPost(w http.ResponseWriter, r *http.Request){
 	err := db.QueryRow("SELECT postid, title, author, COALESCE(body, '') FROM posts WHERE postid = ?",
 		postid).Scan(&p.PostId, &p.Title, &p.Author, &p.Body)
 
-	if errors.Is(err, sql.NoRows) {
+	if errors.Is(err, sql.ErrNoRows) {
 		http.Error(w, "post not found", http.StatusNotFound)
+		return
 	}
 
 	if err != nil {
@@ -197,7 +199,7 @@ func createPost(w http.ResponseWriter, r *http.Request){
 
 func updatePost(w http.ResponseWriter, r *http.Request){
 	if !isJSON(r) {
-		http.Error(w, "Content-Type must be application/json")
+		http.Error(w, "Content-Type must be application/json", http.StatusUnsupportedMediaType)
 		return
 	}
 
@@ -210,7 +212,7 @@ func updatePost(w http.ResponseWriter, r *http.Request){
 	}
 
 	res, err := db.Exec(
-		`UPDATE properties SET author=? title=? body=? WHERE postid=?`,
+		`UPDATE posts SET author=?, title=?, body=? WHERE postid=?`,
 		p.Author, p.Title, p.Body, id)
 
 	if err != nil {
@@ -243,5 +245,5 @@ func deletePost(w http.ResponseWriter, r *http.Request){
 	if n == 0 {
 		http.Error(w, "post nto found", http.StatusNotFound)
 	}
-	w.WriteHEader(http.StatusNoContent)
+	w.WriteHeader(http.StatusNoContent)
 }
