@@ -1,3 +1,55 @@
 <!DOCTYPE html>
 <html>
-  </html>
+  <head>
+    <title>Cage Bullard's Personal Website</title>
+    <meta name="description" content="Cage Bullard's personal website." />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="index.js"></script>
+  </head>
+  <body onload="loadPosts()">
+    <header></header>
+    <main>
+      <nav>
+        <a href="/">Home</a>
+        <form>
+          <input id="search" type="text" placeholder="search"></input>
+          <button type="submit" onclick="submit()">Search</button>
+        </form>
+        <a href="./about">About</a>
+        <a href="./contact">Contact</a>
+        <a href="./resume">Resume</a>
+      </nav>
+      <aside onload="loadPosts()">
+        <h1>Recent Posts</h1>
+        <section id='recents'></section>
+      </aside>
+      <section class="main-content">
+        <h1>About me</h1>
+        <p>A <code>long long</code> time ago (actually, an <code>int16_t</code> time ago, if you get my joke) I was (a Tar Heel) born! My mom and dad were both Tar Heels, themselves, making me a Tar Heel bred. Given that I haven't yet died, I'm not yet a Tar Heel dead.</p>
+        <p>I grew up in Southeastern North Carolina, where I went to High School amidst the corn and tobacco fields. I grew up playing the violin and banjo, as well as playing mellophone and tuba in my high school marching band. My love for programming and computers was born when I stumbled across the Kahn Academy <code>ProcessingJS</code> tutorial.</p>
+        <iframe src="https://www.youtube.com/embed/wgyIdfaG7Bo" title="North Duplin High School Marching Rebels at Midway 10/5/2019" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <p>I graduated from the North Carolina School of Science and Mathematics, where I met my boyfriend and further developed my love for programming. While there, I maintained my love of music, even being first chair all-state French Horn my senior year, 2023. (I even earned the honor to play the solo from John Williams' <em>Princess Leia's Theme</em> from <em>Star Wars!</em>)</p>
+       <iframe src="https://www.youtube.com/embed/d69QHar_77I?list=RDd69QHar_77I" title="4/30/2023 North Carolina (11/12) All-State Honor Band @ UNCG" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <p>And, like everywhere else, at Carolina, I nurtured my love for computers and my love for music, as well as my love of language by adding a Chinese major and a linguistics minor. Like many that graduate from this place, I am a rabid fan of all things Carolina athletics. I was fortunate enough to go to Ireland and perform with the band for the Tar Heels' 15-10 revenge victory over TCU in 2026.</p>
+        <iframe src="https://www.youtube.com/embed/T1HhWctV5JY" title="Spirit of Carolina - Dublin, Ireland 2026" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <p>Currently, I'm an intern at Triangle E-Cycling, a local business aimed at keeping used hardware in use; Vaughan Law Firms, where I am an IT consultant; and Carolina Performing Arts, where I am both an usher and a head usher.</p>
+        <p>I spend a lot of time honing my programming skills. Most often, I use C, C++, Go, Python and JavaScript. I have plenty of experience with Docker including tools like compose and run. I have been very fortunate to be surrounded by excellent faculty such as Dr. Kevin Jeffay, Dr. Kaki Ryan, and Prof. Ben Berg.</p>
+        <p>As it relates to computers, my greatest interest is in computer networking. The internet is a huge, near-ubiquitous piece of technology that most of us never think about. When I started homelabbing in December of 2025, I realized how interested I was in all of its concepts. Now, I'm working toward my Cisco CNA certificate.</p>
+        <p>Of all the various inspirations in my life, former UNC men's basketball head coach Roy Williams perhaps one of my greatest.</p>
+        <blockquote>
+          <p><em>It's amazing what we can accomplish when nobody cares who gets the credit.</em></p>
+        </blockquote>
+        <p>- Roy Williams, <em>Hard Work (2010)</em></p>
+      </section>
+    </main>
+    <footer>
+      <ul>
+        <li>Maintained by Micajah Bullard at Bullard Tech.</li>
+        <li><a href="mailto:cage@cagebullard.net">cage AT cagebullard DOT net</a></li>
+        <li>+1 (984) 388-0062</li>
+      </ul>
+    </footer>
+  </body>
+</html>
